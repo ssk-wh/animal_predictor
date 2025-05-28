@@ -6,6 +6,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 from PIL import Image
+from tqdm import tqdm
 
 # Data preprocessing
 train_transform = transforms.Compose([
@@ -40,7 +41,7 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=200):
     model.train()
     for epoch in range(num_epochs):
         running_loss = 0.0
-        for inputs, labels in train_loader:
+        for inputs, labels in tqdm(train_loader, desc=f"Epoch {epoch + 1}/{num_epochs}"):
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -51,7 +52,7 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=200):
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {running_loss / len(train_loader):.4f}")
 
 # Test the model
-def test_model(model, test_loader):
+def test_model(model, test_loader, class_names):
     model.eval()
     correct = 0
     total = 0
@@ -65,9 +66,8 @@ def test_model(model, test_loader):
     print(f"Accuracy: {100 * correct / total:.2f}%")
 
 # Predict images in a specified directory
-def predict(model, directory, transform, device):
+def predict(model, directory, transform, device, class_names):
     model.eval()
-    class_names = ["cat", "dog"]  # Assume classes are cat and dog
     for filename in os.listdir(directory):
         if filename.endswith(".jpg") or filename.endswith(".png"):
             img_path = os.path.join(directory, filename)
@@ -103,21 +103,24 @@ def main():
     test_dir = "./data/test"
     model_path = "model.pth"
 
+    # Load datasets
+    train_dataset, test_dataset = load_datasets(train_dir, test_dir)
+    class_names = train_dataset.classes  # Get class names from the dataset
+    num_classes = len(class_names)       # Get number of classes
+
     if args.mode == "train":
-        # Load datasets
-        train_dataset, test_dataset = load_datasets(train_dir, test_dir)
         train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
         # Load model
-        model = load_model(num_classes=2).to(device)
+        model = load_model(num_classes=num_classes).to(device)
 
         # Define loss function and optimizer
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
         # Train the model
-        train_model(model, train_loader, criterion, optimizer, num_epochs=10)
+        train_model(model, train_loader, criterion, optimizer, num_epochs=5)
 
         # Save the model
         torch.save(model.state_dict(), model_path)
@@ -125,25 +128,24 @@ def main():
 
     elif args.mode == "test":
         # Load model
-        model = load_model(num_classes=2).to(device)
+        model = load_model(num_classes=num_classes).to(device)
         model.load_state_dict(torch.load(model_path))
         print(f"Model loaded from {model_path}")
 
-        # Load datasets
-        _, test_dataset = load_datasets(train_dir, test_dir)
+        # Load test data
         test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
         # Test the model
-        test_model(model, test_loader)
+        test_model(model, test_loader, class_names)
 
     elif args.mode == "predict":
         # Load model
-        model = load_model(num_classes=2).to(device)
+        model = load_model(num_classes=num_classes).to(device)
         model.load_state_dict(torch.load(model_path))
         print(f"Model loaded from {model_path}")
 
         # Predict images in the specified directory
-        predict(model, args.dir, test_transform, device)
+        predict(model, args.dir, test_transform, device, class_names)
 
 if __name__ == "__main__":
     main()
