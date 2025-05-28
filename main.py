@@ -109,8 +109,8 @@ def main():
     num_classes = len(class_names)       # Get number of classes
 
     if args.mode == "train":
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=0)
+        test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0)
 
         # Load model
         model = load_model(num_classes=num_classes).to(device)
