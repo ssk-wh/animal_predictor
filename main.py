@@ -120,7 +120,7 @@ def main():
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
         # Train the model
-        train_model(model, train_loader, criterion, optimizer, num_epochs=5)
+        train_model(model, train_loader, criterion, optimizer, num_epochs=1)
 
         # Save the model
         torch.save(model.state_dict(), model_path)
