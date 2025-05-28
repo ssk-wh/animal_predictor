@@ -1,0 +1,4 @@
+TODO
+
+1.Add a crawler script to download online animal pictures, supporting automatic classification and storage
+2.Images should be stored in separate sub-git repositories
