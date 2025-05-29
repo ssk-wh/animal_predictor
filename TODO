@@ -4,3 +4,4 @@ TODO
  - Or use extension of edge browser(such as fitkun) to download images from wensite
 2.Images should be stored in separate sub-git repositories
 3.Use client for integration, such as C++ loading and using models
+4.chat-bot need more train data(will get common data by gpt2)
